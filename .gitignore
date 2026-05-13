@@ -1,0 +1,24 @@
+# Training outputs
+exp_result/
+LA/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model weights
+*.pth
+*.pt
+
+# Logs
+*.log
+runs/

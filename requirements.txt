@@ -1,0 +1,5 @@
+torch>=2.0
+numpy
+soundfile
+tensorboard
+transformers>=4.40
