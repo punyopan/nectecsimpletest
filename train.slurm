@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -p compute                # Queue/Partition (check Lanta docs if 'compute' is wrong)
+#SBATCH -p gpu                    # Queue/Partition for GPU jobs
 #SBATCH -N 1                      # 1 Node
 #SBATCH -c 8                      # 8 CPU Cores
 #SBATCH --gres=gpu:1              # Request 1 GPU (e.g., A100)
