@@ -50,13 +50,10 @@ def main(args: argparse.Namespace) -> None:
 
     # Protocol paths
     prefix_2019 = "ASVspoof2019.{}".format(track)
-    dev_trial_path = (database_path /
-                      "ASVspoof2019_{}_cm_protocols/{}.cm.dev.trl.txt".format(
-                          track, prefix_2019))
-    eval_trial_path = (
-        database_path /
-        "ASVspoof2019_{}_cm_protocols/{}.cm.eval.trl.txt".format(
-            track, prefix_2019))
+    dev_trial_path = (database_path / config.get("dev_list", 
+                      "ASVspoof2019_{}_cm_protocols/{}.cm.dev.trl.txt".format(track, prefix_2019)))
+    eval_trial_path = (database_path / config.get("eval_list", 
+                      "ASVspoof2019_{}_cm_protocols/{}.cm.eval.trl.txt".format(track, prefix_2019)))
 
     # define model related paths
     model_tag = "{}_{}_ep{}_bs{}".format(
@@ -243,22 +240,25 @@ def get_loader(database_path, seed, config):
     afss_augment = str_to_bool(config.get("afss_augment", "False"))
     afss_config = config.get("afss_config", None)
 
-    trn_database_path = Path(database_path) / f"ASVspoof2019_{track}_train/"
-    dev_database_path = Path(database_path) / f"ASVspoof2019_{track}_dev/"
-    eval_database_path = Path(database_path) / f"ASVspoof2019_{track}_eval/"
+    trn_database_path = Path(database_path) / config.get("trn_dir", f"ASVspoof2019_{track}_train/")
+    dev_database_path = Path(database_path) / config.get("dev_dir", f"ASVspoof2019_{track}_dev/")
+    eval_database_path = Path(database_path) / config.get("eval_dir", f"ASVspoof2019_{track}_eval/")
 
-    trn_list_path = (Path(database_path) /
-                     f"ASVspoof2019_{track}_cm_protocols/"
-                     f"{prefix_2019}.cm.train.trn.txt")
-    dev_trial_path = (Path(database_path) /
-                      f"ASVspoof2019_{track}_cm_protocols/"
-                      f"{prefix_2019}.cm.dev.trl.txt")
-    eval_trial_path = (Path(database_path) /
-                       f"ASVspoof2019_{track}_cm_protocols/"
-                       f"{prefix_2019}.cm.eval.trl.txt")
+    trn_list_path = Path(database_path) / config.get("trn_list", 
+                     f"ASVspoof2019_{track}_cm_protocols/{prefix_2019}.cm.train.trn.txt")
+    dev_trial_path = Path(database_path) / config.get("dev_list", 
+                      f"ASVspoof2019_{track}_cm_protocols/{prefix_2019}.cm.dev.trl.txt")
+    eval_trial_path = Path(database_path) / config.get("eval_list", 
+                       f"ASVspoof2019_{track}_cm_protocols/{prefix_2019}.cm.eval.trl.txt")
 
-    d_label_trn, file_train = genSpoof_list(dir_meta=trn_list_path,
-                                            is_train=True, is_eval=False)
+    use_universal = str_to_bool(config.get("universal_protocol", "False"))
+    fmt_config = config.get("protocol_format", {})
+
+    if use_universal:
+        d_label_trn, file_train = gen_universal_spoof_list(dir_meta=trn_list_path, is_train=True, is_eval=False, fmt_config=fmt_config)
+    else:
+        d_label_trn, file_train = genSpoof_list(dir_meta=trn_list_path, is_train=True, is_eval=False)
+        
     print("no. training files:", len(file_train))
 
     train_set = SpoofDataset_train(
@@ -268,15 +268,21 @@ def get_loader(database_path, seed, config):
         codec_augment=codec_augment, codec_config=codec_config,
         afss_augment=afss_augment, afss_config=afss_config)
 
-    _, file_dev = genSpoof_list(dir_meta=dev_trial_path,
-                                is_train=False, is_eval=False)
+    if use_universal:
+        _, file_dev = gen_universal_spoof_list(dir_meta=dev_trial_path, is_train=False, is_eval=False, fmt_config=fmt_config)
+    else:
+        _, file_dev = genSpoof_list(dir_meta=dev_trial_path, is_train=False, is_eval=False)
+        
     print("no. validation files:", len(file_dev))
     dev_set = SpoofDataset_devNeval(
         list_IDs=file_dev, base_dir=dev_database_path,
         audio_ext=audio_ext, audio_subdir=audio_subdir)
 
-    file_eval = genSpoof_list(dir_meta=eval_trial_path,
-                              is_train=False, is_eval=True)
+    if use_universal:
+        file_eval = gen_universal_spoof_list(dir_meta=eval_trial_path, is_train=False, is_eval=True, fmt_config=fmt_config)
+    else:
+        file_eval = genSpoof_list(dir_meta=eval_trial_path, is_train=False, is_eval=True)
+        
     eval_set = SpoofDataset_devNeval(
         list_IDs=file_eval, base_dir=eval_database_path,
         audio_ext=audio_ext, audio_subdir=audio_subdir)
