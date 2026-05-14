@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -p gpu                    # Queue/Partition for GPU jobs
+#SBATCH -p gpu                    # Queue/Partition for GPU jobs 
 #SBATCH -N 1                      # 1 Node
 #SBATCH -c 8                      # 8 CPU Cores
 #SBATCH --gres=gpu:1              # Request 1 GPU (e.g., A100)
@@ -8,6 +8,7 @@
 #SBATCH -J aasist_mms             # Name of the job
 #SBATCH -o training_log.out       # Where to save the normal print outputs
 #SBATCH -e training_error.err     # Where to save error messages
+
 
 # Load modules and activate environment
 module purge
