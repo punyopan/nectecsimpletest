@@ -318,7 +318,24 @@ def produce_evaluation_file(data_loader, model, device, save_path,
     assert len(trial_lines) == len(fname_list) == len(score_list)
     with open(save_path, "w") as fh:
         for fn, sco, trl in zip(fname_list, score_list, trial_lines):
-            _, utt_id, _, src, key = trl.strip().split(' ')
+            trl = trl.strip()
+            # Try parsing as ASVspoof format first (5 columns, space separated)
+            parts = trl.split(' ')
+            if len(parts) == 5:
+                _, utt_id, _, src, key = parts
+            else:
+                # Fallback for Universal/ThaiSpoof format (comma separated)
+                parts = trl.split(',')
+                utt_id = parts[0]
+                key = parts[1] if len(parts) > 1 else "unknown"
+                src = "unknown"
+            
+            # Remove any directory paths from the filename for the assert
+            if '/' in utt_id:
+                utt_id = utt_id.split('/')[-1]
+            if '/' in fn:
+                fn = fn.split('/')[-1]
+                
             assert fn == utt_id
             fh.write("{} {} {} {}\n".format(utt_id, src, key, sco))
     print("Scores saved to {}".format(save_path))

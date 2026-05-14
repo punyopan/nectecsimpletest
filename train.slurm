@@ -4,7 +4,7 @@
 #SBATCH -c 8                      # 8 CPU Cores
 #SBATCH --gres=gpu:1              # Request 1 GPU (e.g., A100)
 #SBATCH -t 48:00:00               # Max time allowed (48 hours)
-#SBATCH -A lt200321               # Lanta Project ID/Account
+#SBATCH -A lt200321-coasta       # Lanta Project ID/Account
 #SBATCH -J aasist_mms             # Name of the job
 #SBATCH -o training_log.out       # Where to save the normal print outputs
 #SBATCH -e training_error.err     # Where to save error messages
