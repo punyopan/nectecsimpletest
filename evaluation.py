@@ -19,6 +19,21 @@ def calculate_tDCF_EER(cm_scores_file, asv_score_file, output_file,
         'Cmiss_cm': 1, 'Cfa_cm': 10,
     }
 
+    if not os.path.exists(asv_score_file):
+        cm_data = np.genfromtxt(cm_scores_file, dtype=str)
+        cm_keys = cm_data[:, 2]
+        cm_scores = cm_data[:, 3].astype(float)
+        bona_cm = cm_scores[cm_keys == 'bonafide']
+        spoof_cm = cm_scores[cm_keys == 'spoof']
+        eer_cm = compute_eer(bona_cm, spoof_cm)[0]
+        
+        if printout:
+            with open(output_file, "w") as f_res:
+                f_res.write('\nCM SYSTEM\n')
+                f_res.write('\tEER\t\t= {:8.9f} % \n'.format(eer_cm * 100))
+                f_res.write('\tmin-tDCF\t\t= N/A (No ASV scores)\n')
+        return eer_cm * 100, 0.05  # Return dummy tDCF if none exists
+
     asv_data = np.genfromtxt(asv_score_file, dtype=str)
     asv_keys = asv_data[:, 1]
     asv_scores = asv_data[:, 2].astype(float)

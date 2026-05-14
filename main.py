@@ -129,8 +129,24 @@ def main(args: argparse.Namespace) -> None:
         writer = None
         print("TensorBoard not found, logging disabled")
 
+    start_epoch = 0
+    if args.resume:
+        import glob
+        epoch_files = glob.glob(str(model_save_path / "epoch_*.pth"))
+        if epoch_files:
+            # Parse the epoch number from filename (e.g. epoch_2_0.123.pth)
+            def get_ep(f):
+                try: return int(os.path.basename(f).split('_')[1])
+                except: return -1
+            latest_file = max(epoch_files, key=get_ep)
+            model.load_state_dict(torch.load(latest_file, map_location=device))
+            start_epoch = get_ep(latest_file) + 1
+            print(">>> Resuming training from {}, starting at epoch {} <<<".format(os.path.basename(latest_file), start_epoch))
+        else:
+            print(">>> No checkpoints found to resume from! Starting from epoch 0. <<<")
+
     # Training
-    for epoch in range(config["num_epochs"]):
+    for epoch in range(start_epoch, config["num_epochs"]):
         print("Start training epoch{:03d}".format(epoch))
         running_loss = train_epoch(trn_loader, model, optimizer, device,
                                    scheduler, config)
@@ -388,4 +404,6 @@ if __name__ == "__main__":
                         help="eval mode")
     parser.add_argument("--comment", type=str, default=None,
                         help="Comment to describe the saved model")
+    parser.add_argument("--resume", action="store_true", default=False,
+                        help="resume training from the latest epoch checkpoint")
     main(parser.parse_args())
